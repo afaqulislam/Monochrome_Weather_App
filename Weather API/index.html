@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monochrome Weather App</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #000000;
+            --secondary-color: #333333;
+            --background-color: #ffffff;
+            --text-color: #000000;
+            --error-color: #ff0000;
+            --success-color: #008000;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            transition: background-color 0.3s ease;
+        }
+
+        .container {
+            max-width: 500px;
+            width: 100%;
+            padding: 10px 40px 40px;
+            height: auto;
+            background-color: var(--background-color);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border-radius: 20px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 2px solid var(--primary-color);
+        }
+
+        .container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+            font-weight: 700;
+            font-size: 2.5rem;
+        }
+
+        .input-group {
+            display: flex;
+            margin-bottom: 25px;
+        }
+
+        input {
+            flex-grow: 1;
+            padding: 15px;
+            font-size: 16px;
+            border: 2px solid var(--primary-color);
+            border-radius: 12px 0 0 12px;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 16px;
+            background-color: var(--primary-color);
+            color: var(--background-color);
+            border: none;
+            border-radius: 0 12px 12px 0;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .error {
+            color: var(--error-color);
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .weather-info {
+            text-align: center;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--primary-color);
+        }
+
+        .weather-info.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .weather-info h2 {
+            margin-bottom: 20px;
+            color: var(--primary-color);
+            font-size: 1.8rem;
+        }
+
+        .weather-info .temperature {
+            font-size: 4rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+        }
+
+        .weather-info .condition {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            font-weight: 400;
+            color: var(--secondary-color);
+        }
+
+        .weather-info img {
+            max-width: 120px;
+            margin-bottom: 20px;
+            transition: transform 0.3s ease;
+            background-color: #333333;
+            border-radius: 50%;
+            padding: 10px;
+            filter: grayscale(10%);
+        }
+
+        .weather-info img:hover {
+            transform: scale(1.2) rotate(360deg);
+            cursor: pointer;
+        }
+
+        #locationStatus {
+            text-align: center;
+            margin-bottom: 20px;
+            font-style: italic;
+            color: var(--secondary-color);
+        }
+
+        .promotion {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1.5rem;
+            text-transform: capitalize;
+            color: var(--secondary-color);
+        }
+
+        .promotion span {
+            color: var(--error-color);
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .weather-info .temperature {
+                font-size: 3rem;
+            }
+
+            .weather-info .condition {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Monochrome Weather</h1>
+        <div id="locationStatus"></div>
+        <div class="input-group">
+            <input type="text" id="locationInput" placeholder="Enter location">
+            <button id="searchButton">Search</button>
+        </div>
+        <div id="errorMessage" class="error"></div>
+        <div id="weatherInfo" class="weather-info"></div>
+        <div class="promotion">built with <span>❤</span> by afaq dev</div>
+    </div>
+
+    <script>
+        const API_KEY = 'eff15a046767461d810143451252301';
+        const API_URL = 'https://api.weatherapi.com/v1/current.json';
+
+        const locationInput = document.getElementById('locationInput');
+        const searchButton = document.getElementById('searchButton');
+        const errorMessage = document.getElementById('errorMessage');
+        const weatherInfo = document.getElementById('weatherInfo');
+        const locationStatus = document.getElementById('locationStatus');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            getLocationAndWeather();
+        });
+
+        searchButton.addEventListener('click', getWeatherFromInput);
+        locationInput.addEventListener('keypress', function (event) {
+            if (event.key === 'Enter') {
+                getWeatherFromInput();
+            }
+        });
+
+        function getLocationAndWeather() {
+            locationStatus.textContent = 'Detecting your location...';
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(function (position) {
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+                    locationStatus.textContent = 'Location detected! Fetching weather...';
+                    getWeather(`${latitude},${longitude}`);
+                }, function (error) {
+                    locationStatus.textContent = 'Unable to detect location. Please enter manually.';
+                    console.error("Error: " + error.message);
+                });
+            } else {
+                locationStatus.textContent = 'Geolocation is not supported by your browser. Please enter location manually.';
+            }
+        }
+
+        function getWeatherFromInput() {
+            const location = locationInput.value.trim();
+            if (!location) {
+                showError('Please enter a location');
+                return;
+            }
+            getWeather(location);
+        }
+
+        async function getWeather(location) {
+            try {
+                searchButton.disabled = true;
+                searchButton.textContent = 'Searching...';
+                errorMessage.textContent = '';
+                weatherInfo.classList.remove('visible');
+
+                const response = await fetch(`${API_URL}?key=${API_KEY}&q=${location}&aqi=yes`);
+                const data = await response.json();
+
+                if (data.error) {
+                    showError(data.error.message);
+                } else {
+                    displayWeather(data);
+                    locationStatus.textContent = '';
+                }
+            } catch (error) {
+                showError('Failed to fetch weather data');
+            } finally {
+                searchButton.disabled = false;
+                searchButton.textContent = 'Search';
+            }
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            weatherInfo.innerHTML = '';
+            weatherInfo.classList.remove('visible');
+        }
+
+        function displayWeather(data) {
+            const { name, region, country } = data.location;
+            const { temp_c, condition } = data.current;
+
+            weatherInfo.innerHTML = `
+                <h2>${name}, ${region}, ${country}</h2>
+                <div class="temperature">${temp_c}°C</div>
+                <div class="condition">${condition.text}</div>
+                <img src="https:${condition.icon}" alt="${condition.text}">
+            `;
+
+            setTimeout(() => {
+                weatherInfo.classList.add('visible');
+            }, 100);
+
+            updateBackgroundColor(temp_c);
+        }
+
+        function updateBackgroundColor(temperature) {
+            let lightness;
+            if (temperature <= 0) {
+                lightness = 95; // Very light gray for cold
+            } else if (temperature >= 30) {
+                lightness = 85; // Slightly darker gray for hot
+            } else {
+                lightness = 95 - (temperature / 30) * 10; // Gradient from light to slightly darker
+            }
+            document.body.style.backgroundColor = `hsl(0, 0%, ${lightness}%)`;
+        }
+    </script>
+</body>
+
+</html>
